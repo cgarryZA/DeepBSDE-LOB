@@ -2,9 +2,9 @@
 
 **[Read the paper (PDF)](paper.pdf)**
 
-A PyTorch implementation of two deep BSDE solvers for optimal market-making in the Cont-Xiong (2024) dealer market model: a **jump-aware formulation** (FBSDEJ) preserving the discrete Poisson inventory structure, and a **diffusion surrogate** for comparison. Validated against a matched finite-horizon finite-difference baseline with cross-dynamics policy evaluation.
+A PyTorch implementation and empirical study of two deep BSDE formulations for optimal market-making in the Cont-Xiong (2024) dealer market model: a **jump-aware formulation** (FBSDEJ) preserving the discrete Poisson inventory structure, and a **diffusion surrogate** for comparison. Validated against a matched finite-horizon finite-difference baseline with cross-dynamics policy evaluation.
 
-The solver extends the Deep BSDE framework (Han, Jentzen, E, 2018) and the McKean-Vlasov fictitious play approach (Han, Hu, Long, 2022) to forward-backward SDEs with Poisson jumps. The neural network outputs the Brownian gradient Z_t and discrete jump value increments U_t^+/- at each time step; optimal bid-ask quotes are recovered from the HJB first-order conditions.
+The implementation builds on Deep BSDE methods (Han, Jentzen, E, 2018) and adapts them to a jump-control setting with explicit control recovery, incorporating a moment-based mean-field proxy inspired by the fictitious play approach of Han, Hu, Long (2022). The neural network outputs the Brownian gradient Z_t and discrete jump value increments U_t^+/- at each time step; optimal bid-ask quotes are recovered from the HJB first-order conditions.
 
 ## Key Results
 
@@ -29,11 +29,11 @@ Cross-dynamics evaluation: surrogate policy trained under diffusion, deployed un
 | Mean \|q_T\| | 0.54 | 0.53 |
 | Mean spread | 1.333 | 1.368 |
 
-The surrogate-trained policy captures 99.3% of FD-optimal P&L.
+The surrogate-trained policy captures ~99.3% of FD-optimal mean P&L.
 
 ### Stress Tests Under Non-Linear Penalties (Table 4)
 
-Deep BSDE surrogate (5 seeds, 3000 iterations, phi = 0.01) vs FD stationary reference.
+Deep BSDE surrogate (5 seeds, 3000 iterations, phi = 0.01) vs FD stationary reference (qualitative comparison only; stationary V(0) is not directly comparable to finite-horizon Y_0).
 
 | Penalty | Deep BSDE Y_0 | max \|Z_t\| | FD V(0) | FD Spread |
 |---------|---------------|-------------|---------|-----------|
@@ -68,7 +68,7 @@ Matched FD vs Deep BSDE surrogate (1000 iterations).
 | 2.0 | 0.866 | 0.864 | 1.383 | 0.2% |
 | 5.0 | 1.852 | 1.172 | 1.410 | 36.7% |
 
-Accurate for T <= 2; fails at T = 5 due to Euler discretisation error accumulating over N_T = 50 steps.
+Accurate for T <= 2; fails at T = 5 due to Euler discretisation error and increased training variance over long horizons with N_T = 50 steps.
 
 ### Mean-Field Ablation (Section 7.7)
 
@@ -76,7 +76,7 @@ Comparing Type 1 (no coupling) vs Type 3 (moment-proxy fictitious play) across 5
 
 ## Core Finding
 
-Accurate value approximation does not guarantee accurate control recovery. The diffusion surrogate achieves <0.1% value error but its total spread (2/alpha = 1.333) is structurally constant -- a property fixed by the control parameterisation, not learned. The FD spread (1.370) is 2.7% wider. Despite this structural bias, the surrogate-trained policy deployed under true Poisson execution captures 99.3% of FD-optimal P&L, showing that structurally biased controls can remain economically robust in low inventory-penalty regimes.
+Accurate value approximation does not guarantee accurate control recovery. The diffusion surrogate achieves <0.1% value error but its total spread (2/alpha = 1.333) is structurally constant -- a property fixed by the control parameterisation, not learned. The FD spread (1.370) is 2.7% wider. Despite this structural bias, the surrogate-trained policy deployed under true Poisson execution captures ~99.3% of FD-optimal mean P&L, showing that structurally biased controls can remain economically robust in low inventory-penalty regimes.
 
 This robustness should not be expected to hold under stronger inventory penalties or models with adverse selection.
 
