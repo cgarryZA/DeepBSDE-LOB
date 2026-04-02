@@ -1,0 +1,19 @@
+# Training outputs
+/logs/
+/results/
+/results_full/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated configs
+configs/generated/
+
+# LaTeX source and build artifacts (PDF is at top level)
+/report/
+*.aux
+*.log
+*.out
+*.synctex.gz
